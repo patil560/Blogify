@@ -1,0 +1,11 @@
+process.env.NODE_ENV="test";
+process.env.MONGO_URL="mongodb://localhost:27017/blogify-test";
+process.env.JWT_SECRET="a".repeat(40);
+process.env.CLIENT_URL="http://localhost:5173";
+const test=require("node:test");
+const assert=require("node:assert/strict");
+const {signupSchema,blogSchema,commentSchema}=require("../src/validators/schemas");
+test("signup validation normalizes email",()=>{const r=signupSchema.parse({username:"Vitthal",email:"VITTHAL@EXAMPLE.COM",password:"password123"});assert.equal(r.email,"vitthal@example.com")});
+test("weak password is rejected",()=>{assert.throws(()=>signupSchema.parse({username:"A",email:"a@b.com",password:"123"}))});
+test("blog requires meaningful content",()=>{assert.throws(()=>blogSchema.parse({title:"Hi",body:"short"}))});
+test("comment accepts valid content",()=>{assert.equal(commentSchema.parse({content:"Nice article"}).content,"Nice article")});

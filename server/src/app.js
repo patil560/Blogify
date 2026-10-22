@@ -1,0 +1,36 @@
+const express=require("express");
+const path=require("path");
+const cookieParser=require("cookie-parser");
+const cors=require("cors");
+const helmet=require("helmet");
+const morgan=require("morgan");
+const rateLimit=require("express-rate-limit");
+const env=require("./config/env");
+const {authenticate}=require("./middleware/auth");
+const {csrfProtection}=require("./middleware/security");
+const {notFound,errorHandler}=require("./middleware/error");
+
+const app=express();
+app.disable("x-powered-by");
+app.set("trust proxy",1);
+app.use(helmet({crossOriginResourcePolicy:{policy:"cross-origin"}}));
+app.use(cors({origin:env.CLIENT_URL,credentials:true,methods:["GET","POST","PATCH","DELETE","OPTIONS"],allowedHeaders:["Content-Type","X-CSRF-Token"]}));
+app.use(express.json({limit:"1mb"}));
+app.use(express.urlencoded({extended:true,limit:"1mb"}));
+app.use(cookieParser());
+app.use(morgan(env.isProduction?"combined":"dev"));
+app.use(rateLimit({windowMs:15*60*1000,limit:300,standardHeaders:true,legacyHeaders:false}));
+app.use("/uploads",express.static(path.resolve("uploads"),{maxAge:"1d"}));
+app.use(authenticate);
+app.use(csrfProtection);
+
+app.get("/",(req,res)=>res.json({success:true,name:"Blogify API",version:"1.0.0"}));
+app.get("/health",(req,res)=>res.json({success:true,status:"ok",database:require("mongoose").connection.readyState===1?"connected":"disconnected",timestamp:new Date().toISOString()}));
+app.use("/api/auth",require("./routes/auth"));
+app.use("/api/blogs",require("./routes/blog"));
+app.use("/api/comments",require("./routes/comments"));
+app.use("/api/users",require("./routes/user"));
+app.use("/api/admin",require("./routes/admin"));
+app.use(notFound);
+app.use(errorHandler);
+module.exports=app;

@@ -1,0 +1,18 @@
+const router = require("express").Router();
+const { list,getById,create,update,remove,comment,toggleLike,toggleBookmark,report } = require("../controllers/blog");
+const { requireAuth } = require("../middleware/auth");
+const upload = require("../middleware/upload");
+const { validate } = require("../middleware/validate");
+const { blogSchema,commentSchema,reportSchema,pageSchema } = require("../validators/schemas");
+const rateLimit = require("express-rate-limit");
+const writeLimiter = rateLimit({windowMs:60*1000,limit:30,standardHeaders:true,legacyHeaders:false});
+router.get("/", validate(pageSchema,"query"), list);
+router.get("/:id", getById);
+router.post("/", requireAuth, writeLimiter, upload.single("coverImage"), validate(blogSchema), create);
+router.patch("/:id", requireAuth, writeLimiter, upload.single("coverImage"), validate(blogSchema), update);
+router.delete("/:id", requireAuth, writeLimiter, remove);
+router.post("/:id/comments", requireAuth, writeLimiter, validate(commentSchema), comment);
+router.post("/:id/like", requireAuth, writeLimiter, toggleLike);
+router.post("/:id/bookmark", requireAuth, writeLimiter, toggleBookmark);
+router.post("/:id/report", requireAuth, writeLimiter, validate(reportSchema), report);
+module.exports = router;

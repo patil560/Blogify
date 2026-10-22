@@ -1,0 +1,10 @@
+const { z } = require("zod");
+const email = z.string().trim().email().max(120).transform(v => v.toLowerCase());
+const password = z.string().min(8).max(72);
+const signupSchema = z.object({ username: z.string().trim().min(2).max(50), email, password });
+const signinSchema = z.object({ email, password });
+const blogSchema = z.object({ title: z.string().trim().min(5).max(150), body: z.string().trim().min(20).max(50000), category: z.string().trim().min(2).max(40).default("General"), tags: z.string().optional().default(""), status: z.enum(["DRAFT", "PUBLISHED"]).default("PUBLISHED") });
+const commentSchema = z.object({ content: z.string().trim().min(1).max(1000) });
+const pageSchema = z.object({ page: z.coerce.number().int().min(1).default(1), limit: z.coerce.number().int().min(1).max(30).default(10), search: z.string().trim().max(100).optional().default(""), category: z.string().trim().max(40).optional().default("") });
+const reportSchema = z.object({ reason: z.string().trim().min(3).max(100) });
+module.exports = { signupSchema, signinSchema, blogSchema, commentSchema, pageSchema, reportSchema };

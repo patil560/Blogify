@@ -1,0 +1,10 @@
+const router=require("express").Router();
+const {requireAuth,requireAdmin}=require("../middleware/auth");
+const {stats,users,toggleUser,reports,resolveReport}=require("../controllers/admin");
+router.use(requireAuth,requireAdmin);
+router.get("/stats",stats);
+router.get("/users",users);
+router.patch("/users/:id/toggle",toggleUser);
+router.get("/reports",reports);
+router.patch("/reports/:id",resolveReport);
+module.exports=router;
